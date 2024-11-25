@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-quote
+  labels:
+    app: go-quote
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-quote
+  template:
+    metadata:
+      labels:
+        app: go-quote
+    spec:
+      containers:
+        - name: go-quote
+          image: g1g1/go-quote-service:latest
+          ports:
+            - containerPort: 7777
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-quote-service
+  labels:
+    app: go-quote
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 7777
+  selector:
+    app: go-quote
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: go-quote-hpa
+  labels:
+    app: go-quote
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: go-quote
+  minReplicas: 1
+  maxReplicas: 1
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
