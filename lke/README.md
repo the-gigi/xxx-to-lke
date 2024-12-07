@@ -1,76 +1,60 @@
 # Install linode-cli
 
-This is already done in the reqquirements.txt of the virutal environment
+This is already done in the requirements.txt of the virtual environment
 
 # Provision a minimal LKE cluster
 
 Check available versions
 ```
-linode lke versions-list
+❯ lin lke versions-list
 ┌──────┐
 │ id   │
 ├──────┤
 │ 1.31 │
 ├──────┤
 │ 1.30 │
-├──────┤
-│ 1.29 │
 └──────┘
 ```
 
-Check availabe node types
+Check available regions in the US
+
 ```
-❯ linode linodes types --label "Linode 4GB" --json --pretty
-[
-  {
-    "addons": {
-      "backups": {
-        "price": {
-          "hourly": 0.008,
-          "monthly": 5.0
-        },
-        "region_prices": [
-          {
-            "hourly": 0.009,
-            "id": "id-cgk",
-            "monthly": 6.0
-          },
-          {
-            "hourly": 0.01,
-            "id": "br-gru",
-            "monthly": 7.0
-          }
-        ]
-      }
-    },
-    "class": "standard",
-    "disk": 81920,
-    "gpus": 0,
-    "id": "g6-standard-2",
-    "label": "Linode 4GB",
-    "memory": 4096,
-    "network_out": 4000,
-    "price": {
-      "hourly": 0.036,
-      "monthly": 24.0
-    },
-    "region_prices": [
-      {
-        "hourly": 0.043,
-        "id": "id-cgk",
-        "monthly": 28.8
-      },
-      {
-        "hourly": 0.05,
-        "id": "br-gru",
-        "monthly": 33.6
-      }
-    ],
-    "successor": null,
-    "transfer": 4000,
-    "vcpus": 2
-  }
-]
+❯ lin regions ls | rg 'us-|label' | awk -F '│' '{print $2, $3}' | sed 's/^ *//;s/ *$//'
+id             label
+us-iad         Washington, DC
+us-ord         Chicago, IL
+us-sea         Seattle, WA
+us-mia         Miami, FL
+us-lax         Los Angeles, CA
+us-central     Dallas, TX
+us-west        Fremont, CA
+us-southeast   Atlanta, GA
+us-east        Newark, NJ
+```
+
+Check available node types
+
+Let's search for node types with 2 CPUs and 4 GiB of memory
+```
+❯ lin linodes types --vcpus 2 --memory 4096 --json --pretty | jq '.[] | {class, id, vcpus, memory}'
+{
+  "class": "standard",
+  "id": "g6-standard-2",
+  "vcpus": 2,
+  "memory": 4096
+}
+{
+  "class": "dedicated",
+  "id": "g6-dedicated-2",
+  "vcpus": 2,
+  "memory": 4096
+}
+{
+  "class": "premium",
+  "id": "g7-premium-2",
+  "vcpus": 2,
+  "memory": 4096
+}
 ```
 
 Let's provision a cluster with the following configuration:
@@ -79,7 +63,7 @@ Let's provision a cluster with the following configuration:
 linode lke cluster-create \
   --label eks-to-lke \
   --k8s_version 1.31 \
-  --region ca-central \
+  --region us-sea \
   --node_pools '[{
     "type": "g6-standard-2",
     "count": 1,
@@ -91,11 +75,12 @@ linode lke cluster-create \
   }]'
   
 Using default values: {}; use the --no-defaults flag to disable defaults
-┌────────┬────────────┬────────────┬─────────────┬─────────────────────────────────┬──────┐
-│ id     │ label      │ region     │ k8s_version │ control_plane.high_availability │ tier │
-├────────┼────────────┼────────────┼─────────────┼─────────────────────────────────┼──────┤
-│ 274239 │ eks-to-lke │ ca-central │ 1.31        │ False                           │      │
-└────────┴────────────┴────────────┴─────────────┴─────────────────────────────────┴──────┘ 
+┌────────┬────────────┬────────┬─────────────┬─────────────────────────────────┬──────┐
+│ id     │ label      │ region │ k8s_version │ control_plane.high_availability │ tier │
+├────────┼────────────┼────────┼─────────────┼─────────────────────────────────┼──────┤
+│ 278475 │ eks-to-lke │ us-sea │ 1.31        │ False                           │      │
+└────────┴────────────┴────────┴─────────────┴─────────────────────────────────┴──────┘
+
 ```
 
 # Access the cluster
@@ -114,8 +99,8 @@ Now, we can access the cluster using the kubeconfig file.
 
 ```
 ❯ kubectl get no --kubeconfig ~/.kube/lke-config
-NAME                            STATUS   ROLES    AGE     VERSION
-lke274239-446323-3442419d0000   Ready    <none>   2m34s   v1.31.0
+NAME                            STATUS   ROLES    AGE    VERSION
+lke278475-459426-19cb173e0000   Ready    <none>   9m4s   v1.31.0
 ```
 
 We have one node in the cluster as requested, and it is using version 1.31.0.
@@ -138,17 +123,17 @@ go-quote   1/1     1            1           3m44s
 
 Let's check the service:
 ```
-❯ kubectl get svc --kubeconfig ~/.kube/lke-config
-NAME               TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)        AGE
-go-quote-service   LoadBalancer   10.128.173.62   172.105.1.151   80:30204/TCP   4m4s
-kubernetes         ClusterIP      10.128.0.1      <none>          443/TCP        9m32s
+❯ kubectl get svc
+NAME               TYPE           CLUSTER-IP       EXTERNAL-IP      PORT(S)        AGE
+go-quote-service   LoadBalancer   34.118.230.115   34.106.216.147   80:30378/TCP   3h20m
+kubernetes         ClusterIP      34.118.224.1     <none>           443/TCP        3h53m
 ```
 
 Great. We have an external IP. Let's check if we can access the service:
 ```
-❯ http -b http://172.105.1.151/quotes quote='test quote 1'
-❯ http -b http://172.105.1.151/quotes quote='test quote 2'
-❯ http -b http://172.105.1.151/quotes
+❯ http -b 34.106.216.147/quotes quote='test quote 1'
+❯ http -b 34.106.216.147/quotes quote='test quote 2'
+❯ http -b 34.106.216.147/quotes                     
 [
     "test quote 1",
     "test quote 2"

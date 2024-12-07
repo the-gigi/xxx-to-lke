@@ -127,3 +127,14 @@ Let's confirm we can access the go-quote srvice using the external IP.
     "test quote 2"
 ]
 ```
+
+# Shutdown the cluster
+
+```
+❯ eksctl  get cluster
+NAME					REGION		EKSCTL CREATED
+extravagant-sculpture-1732490260	us-west-2	True
+```
+
+```
+```
