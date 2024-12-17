@@ -136,5 +136,29 @@ NAME					REGION		EKSCTL CREATED
 extravagant-sculpture-1732490260	us-west-2	True
 ```
 
+# Create repo in ECR and push image
+
+Make sure the ECR repo go-quote-service exists in the correct region (west-us2)
+
+
+Login to ECR:
+
 ```
+aws ecr get-login-password --region us-west-2 --profile private | docker login --username AWS --password-stdin 422966116851.dkr.ecr.us-west-2.amazonaws.com
 ```
+
+Tag the image:
+```
+docker tag g1g1/go-quote-service:96b228425e13f4b2576bbfd769a105a33d9a8fea0d198732b6a330a6185409fc 422966116851.dkr.ecr.us-west-2.amazonaws.com/go-quote-service:latest
+```
+
+Push the image
+```
+docker push 422966116851.dkr.ecr.us-west-2.amazonaws.com/go-quote-service:latest
+The push refers to repository [422966116851.dkr.ecr.us-west-2.amazonaws.com/go-quote-service]
+5825223fabf3: Pushed
+ffe56a1c5f38: Pushed
+8eb6febda7cc: Pushed
+latest: digest: sha256:9e16d7efea64c40fa2ee98c3cab1a82d044ed6fb8d72fc3251772c4e473c6b37 size: 945
+```
+

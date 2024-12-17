@@ -179,3 +179,26 @@ gcloud container clusters delete test-cluster --region us-west3
 The following clusters will be deleted.
  - [test-cluster] in [us-west3]
 ```
+
+# Create repo in Artifact Registry and push an image
+
+
+```
+gcloud auth configure-docker \
+    us-west3-docker.pkg.dev
+```
+
+Tag the image
+```
+docker tag g1g1/go-quote-service:96b228425e13f4b2576bbfd769a105a33d9a8fea0d198732b6a330a6185409fc us-west3-docker.pkg.dev/playground-161404/go-quote-service/go-quote-service:latest
+```
+
+Push the image
+```
+docker push us-west3-docker.pkg.dev/playground-161404/go-quote-service/go-quote-service:latest
+The push refers to repository [us-west3-docker.pkg.dev/playground-161404/go-quote-service/go-quote-service]
+5825223fabf3: Pushed
+ffe56a1c5f38: Pushed
+8eb6febda7cc: Pushed
+latest: digest: sha256:9e16d7efea64c40fa2ee98c3cab1a82d044ed6fb8d72fc3251772c4e473c6b37 size: 945 
+```
