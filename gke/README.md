@@ -1,4 +1,4 @@
-# Create an a Google account and go to the Google cloud console
+# Create a Google account and go to the Google cloud console
 
 https://console.cloud.google.com/
 
@@ -169,10 +169,13 @@ Let's confirm we can access the go-quote srvice using the external IP.
 # Shutdown the cluster
 
 ```
-❯ eksctl  get cluster
-NAME					REGION		EKSCTL CREATED
-extravagant-sculpture-1732490260	us-west-2	True
+gcloud container clusters list
+NAME          LOCATION  MASTER_VERSION      MASTER_IP      MACHINE_TYPE  NODE_VERSION        NUM_NODES  STATUS
+test-cluster  us-west3  1.30.6-gke.1125000  34.106.42.216  e2-small      1.30.6-gke.1125000  1          RUNNING
 ```
 
 ```
+gcloud container clusters delete test-cluster --region us-west3
+The following clusters will be deleted.
+ - [test-cluster] in [us-west3]
 ```
